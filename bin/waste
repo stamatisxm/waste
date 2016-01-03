@@ -1,0 +1,94 @@
+#!/bin/bash
+
+#
+#    waste - { Command Line Waste Basket Utility }
+#    Copyright (C) 2013-2014  Stamatis X. Mavrogeorgis
+#
+#    Author's Email: stamatis@zirconix.net
+#    Author's Website: http://www.istos.info
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# version 0.2.0 - Fixed a lot of stuff
+# version 0.0.3 - Additional functionality
+# version 0.0.1 - Initial concept
+
+##### F U N C T I O N S #####
+
+emptyWaste() {
+  echo -ne "\033[0;31mEmptying \033[1;37m$WBDIR...\e[0m";
+  rm -rf "$WBDIR";
+  [ -d "$WBDIR" ] || mkdir "$WBDIR";
+  echo -e " \e[1;33mDone!\033[0m";
+}
+
+showWaste() {
+  echo -e "\e[1;4;33mWasted / Recoverable Files:\033[0m";
+  ls --color=auto -A "$WBDIR";
+}
+
+showWasteSpace() {
+  echo -e "\e[1;33mSpace taken by wasted files in \033[1;37m$WBDIR: \033[1;31m$(du -sh $WBDIR | cut -f1 -d'	')\e[0m"
+}
+
+printFileError() {
+  echo -e "\e[33mInvalid option, directory or file: \e[4;31m$1\033[0m";
+}
+
+printUsage() {
+  echo -e "\033[1mUsage: ${0##*/} [ -h | -E | -s | -w ] || <directory || filename>
+  ${0##*/} -h : shows the usage of this command and exits (This message)
+  ${0##*/} -E : empty waste (removes and recreates the \$HOME/.waste directory)
+  ${0##*/} -s : show contents of the \$HOME/.waste directory
+  ${0##*/} -w : show space on disk of the \$HOME/.waste directory
+  directory || filename = directory or file to move to \$HOME/.waste
+  (A timestamp suffix will be used if necessary)\033[0m";
+}
+
+wasteFiles() {
+  for i in "$1"; do {
+    [ -e "$WBDIR/$1" ] && DEST="$1.$DTSTAMP" || DEST=$(basename "$1") && mv "$1" "$WBDIR/$DEST";
+  }; done
+}
+
+showVersion() {
+  echo $(grep '^# version' $(which ${0##*/}) | cut -f3 -d\  | sort -u | tail -1)
+}
+
+####### P R O G R A M #######
+
+[ "$1" = "-V" ] && showVersion && exit
+
+DTSTAMP=`date "+%Y%m%d%H%M%S"`;
+WBDIR=$HOME/.waste;
+
+[ -d "$WBDIR" ] || mkdir "$WBDIR";
+
+# 1 debug line follows
+# echo $#;
+
+[ $# -eq 0 ] && printUsage && exit 127;
+
+[ "$1" == "-h" ] && printUsage && exit 0;
+[ "$1" == "-E" ] && emptyWaste && exit 0;
+[ "$1" == "-s" ] && showWaste && exit 0;
+[ "$1" == "-w" ] && showWasteSpace && exit 0;
+#[ ! -e "$1" ] && printFileError && exit 111;
+
+while [ $# -gt 0 ]; do {
+  [ -e "$1" ] && wasteFiles "$1" || printFileError "$1"
+  shift
+}; done
+
