@@ -35,7 +35,7 @@ emptyWaste() {
 
 showWaste() {
   echo -e "\e[1;4;33mWasted / Recoverable Files:\033[0m";
-  ls --color=auto -A "$WBDIR";
+  ls --color=auto -oghS "$WBDIR" | grep -v '^total' | awk '{print $3"\t"$7}';
 }
 
 showWasteSpace() {
@@ -47,13 +47,13 @@ printFileError() {
 }
 
 printUsage() {
-  echo -e "\033[1mUsage: ${0##*/} [ -h | -E | -s | -w ] || <directory || filename>
-  ${0##*/} -h : shows the usage of this command and exits (This message)
-  ${0##*/} -E : empty waste (removes and recreates the \$HOME/.waste directory)
-  ${0##*/} -s : show contents of the \$HOME/.waste directory
-  ${0##*/} -w : show space on disk of the \$HOME/.waste directory
-  directory || filename = directory or file to move to \$HOME/.waste
-  (A timestamp suffix will be used if necessary)\033[0m";
+  echo -e "\033[1mUsage: ${0##*/} [ -h | -E | -s | -w ] | <directory | filename>\n
+  ${0##*/} -h : shows the usage of this command and exits (This message)\n
+  ${0##*/} -E : empty waste (removes and recreates the \$HOME/.waste directory)\n
+  ${0##*/} -s : show contents of the \$HOME/.waste directory\n
+  ${0##*/} -w : show space on disk of the \$HOME/.waste directory\n
+  directory | filename = directory or file to move to \$HOME/.waste\n
+  (A timestamp suffix will be used if necessary)\033[0m\n";
 }
 
 wasteFiles() {
