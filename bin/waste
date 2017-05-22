@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-#    Copyright (C) 2013-2016  Stamatis X. Mavrogeorgis
+#    Copyright (C) 2013-2017  Stamatis X. Mavrogeorgis
 #
 #    Author's Email: stamatis@zirconix.net
 #    Author's Website: http://www.istos.xyz
@@ -35,7 +35,7 @@ emptyWaste() {
 
 showWaste() {
   echo -e "\e[1;4;33mWasted / Recoverable Files:\033[0m";
-  ls --color=auto -oghS "$WBDIR" | grep -v '^total' | awk '{print $3"\t"$7}';
+  ls -A --color=auto -oghS "$WBDIR" | grep -v '^total' | awk '{print $3"\t"$7}';
 }
 
 showWasteSpace() {
