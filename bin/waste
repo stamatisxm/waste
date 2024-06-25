@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #
-#    Copyright (C) 2013-2017  Stamatis X. Mavrogeorgis
+#    Copyright (c) 2013-2024 Stamatis X. Mavrogeorgis
 #
 #    Author's Email: stamatis@zirconix.net
-#    Author's Website: http://www.istos.xyz
+#    Author's Website: http://istos.stamatis.uk
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,22 +20,26 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-# version 0.2.0 - Fixed a lot of stuff
-# version 0.0.3 - Additional functionality
-# version 0.0.1 - Initial concept
+# version 0.5.0 - 20200221150800 - Fixed filename display with -s (2nd version)
+# version 0.4.0 - 20200221143522 - Fixed filename display with -s
+# version 0.3.0 - 20160101010101 - Fixed filename space handling
+# version 0.2.0 - 20150101010101 - Fixed a lot of stuff
+# version 0.0.3 - 20140101010101 - Additional functionality
+# version 0.0.1 - 20130101010101 - Initial concept
 
 ##### F U N C T I O N S #####
 
 emptyWaste() {
   echo -ne "\033[0;31mEmptying \033[1;37m$WBDIR...\e[0m";
-  rm -rf "$WBDIR";
-  [ -d "$WBDIR" ] || mkdir "$WBDIR";
+  [[ -d "$WBDIR" ]] && rm -rf "$WBDIR";
+  [[ -d "$WBDIR" ]] || mkdir "$WBDIR";
   echo -e " \e[1;33mDone!\033[0m";
 }
 
 showWaste() {
   echo -e "\e[1;4;33mWasted / Recoverable Files:\033[0m";
-  ls -A --color=auto -oghS "$WBDIR" | grep -v '^total' | awk '{print $3"\t"$7}';
+  #ls -A --color=auto -oghS "$WBDIR" | grep -v '^total' | awk '{print $3"\t"substr($0, index($0,$7))}';
+  ls -A --color=auto -oghS "$WBDIR" | grep -v '^total' | awk -v m="\x01" -v N="7" '{$N=m$N; print $3"\t"substr($0, index($0,m)+1)}';
 }
 
 showWasteSpace() {
@@ -57,8 +61,11 @@ printUsage() {
 }
 
 wasteFiles() {
-  for i in "$1"; do {
-    [ -e "$WBDIR/$1" ] && DEST="$1.$DTSTAMP" || DEST=$(basename "$1") && mv "$1" "$WBDIR/$DEST";
+  for i in "$@"; do {
+    [[ -e $WBDIR/$(basename "$i") ]] \
+      && DEST=$(basename "$i").$DTSTAMP \
+      || DEST=$(basename "$i") \
+      && mv "$i" "$WBDIR/$DEST";
   }; done
 }
 
@@ -68,26 +75,29 @@ showVersion() {
 
 ####### P R O G R A M #######
 
-[ "$1" = "-V" ] && showVersion && exit
+[[ "$1" == "-V" ]] && showVersion && exit
+
+[[ "$1" == "$HOME/Desktop" ]] && exit
 
 DTSTAMP=`date "+%Y%m%d%H%M%S"`;
 WBDIR=$HOME/.waste;
 
-[ -d "$WBDIR" ] || mkdir "$WBDIR";
+[[ -d "$WBDIR" ]] || mkdir "$WBDIR";
 
 # 1 debug line follows
 # echo $#;
 
-[ $# -eq 0 ] && printUsage && exit 127;
+[[ $# -eq 0 ]] && printUsage && exit 127;
 
-[ "$1" == "-h" ] && printUsage && exit 0;
-[ "$1" == "-E" ] && emptyWaste && exit 0;
-[ "$1" == "-s" ] && showWaste && exit 0;
-[ "$1" == "-w" ] && showWasteSpace && exit 0;
-#[ ! -e "$1" ] && printFileError && exit 111;
+[[ "$1" == "-h" ]] && printUsage && exit 0;
+[[ "$1" == "-E" ]] && emptyWaste && exit 0;
+[[ "$1" == "-s" ]] && showWaste && exit 0;
+[[ "$1" == "-w" ]] && showWasteSpace && exit 0;
+#[[ ! -e "$1" ]] && printFileError && exit 111;
 
-while [ $# -gt 0 ]; do {
-  [ -e "$1" ] && wasteFiles "$1" || printFileError "$1"
+#while [[ $# -gt 0 ]]; do {
+while [[ "$@" ]]; do {
+  [[ -e "$1" ]] && wasteFiles "$1" || printFileError "$1"
   shift
 }; done
 
